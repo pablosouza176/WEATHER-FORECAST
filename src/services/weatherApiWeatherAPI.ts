@@ -1,4 +1,3 @@
-// Nova função para previsão estendida (dias)
 export async function getForecastByCity(city: string, days: number = 3) {
   const url = `${BASE_URL}/forecast.json?key=${API_KEY}&q=${encodeURIComponent(
     city
@@ -18,8 +17,6 @@ export async function getForecastByCoords(
   if (!res.ok) throw new Error("Erro ao buscar previsão do tempo");
   return res.json();
 }
-// Serviço para buscar condições do tempo usando WeatherAPI
-// Docs: https://www.weatherapi.com/docs/
 
 const API_KEY = "a7a17623a30a4139b4d152238251110";
 const BASE_URL = "https://api.weatherapi.com/v1";

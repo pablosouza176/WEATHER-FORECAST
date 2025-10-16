@@ -1,4 +1,3 @@
-// Serviço para buscar condições do tempo usando OpenWeatherMap
 
 const API_KEY = "adf9e2b2fcdf97e077f910dce35e683b";
 const BASE_URL = "https://api.openweathermap.org/data/2.5";
