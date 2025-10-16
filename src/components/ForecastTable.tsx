@@ -1,14 +1,25 @@
 import React from "react";
 import styled from "styled-components";
+import { WiRain, WiStrongWind, WiDaySunny, WiCloudy, WiNightClear, WiThunderstorm, WiSnow, WiFog } from "react-icons/wi";
+
+// Garantir compatibilidade dos ícones com JSX/TSX
+const IconDaySunny = WiDaySunny as unknown as React.FC<{ size?: number; style?: React.CSSProperties }>;
+const IconRain = WiRain as unknown as React.FC<{ size?: number; style?: React.CSSProperties }>;
+const IconCloudy = WiCloudy as unknown as React.FC<{ size?: number; style?: React.CSSProperties }>;
+const IconNightClear = WiNightClear as unknown as React.FC<{ size?: number; style?: React.CSSProperties }>;
+const IconThunderstorm = WiThunderstorm as unknown as React.FC<{ size?: number; style?: React.CSSProperties }>;
+const IconSnow = WiSnow as unknown as React.FC<{ size?: number; style?: React.CSSProperties }>;
+const IconFog = WiFog as unknown as React.FC<{ size?: number; style?: React.CSSProperties }>;
+const IconStrongWind = WiStrongWind as unknown as React.FC<{ size?: number; style?: React.CSSProperties }>;
 
 const TableWrapper = styled.div`
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
   border-radius: 1.5rem;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  padding: 2rem 1.5rem;
+  padding: 2.5rem 2.5rem;
   margin: 2.5rem auto 0 auto;
-  width: 90%;
+  width: 98%;
   transition: box-shadow 0.3s, transform 0.3s;
   will-change: box-shadow, transform;
   &:hover {
@@ -40,12 +51,17 @@ const Td = styled.td`
   font-size: 1rem;
 `;
 
-const Bar = styled.div<{ color: string; width: number; gradient?: string }>`
+const ProgressBarBg = styled.div`
+  width: 100%;
+  background: rgba(59,130,246,0.10);
+  border-radius: 9999px;
   height: 8px;
-  border-radius: 8px;
-  background: ${(props) => props.gradient || props.color};
+  overflow: hidden;
+`;
+const ProgressBar = styled.div<{ color: string; width: number }>`
+  height: 100%;
+  background: ${(props) => props.color};
   width: ${(props) => props.width}%;
-  min-width: 8px;
   transition: width 0.7s cubic-bezier(0.22, 0.9, 0.33, 1);
 `;
 
@@ -74,57 +90,49 @@ const ForecastTable: React.FC<ForecastTableProps> = ({ forecast }) => {
         </thead>
         <tbody>
           {forecastDays.length > 0 ? (
-            forecastDays.map((day: any, idx: number) => (
-              <tr key={idx}>
-                <Td>
-                  {new Date(day.date).toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                  })}
-                </Td>
-                <Td>{day.day.condition.text}</Td>
-                <Td>
-                  <Bar
-                    color="#f76c6c"
-                    width={day.day.mintemp_c}
-                    gradient="linear-gradient(90deg, #ffd6d6, #ff6b6b)"
-                  />{" "}
-                  {day.day.mintemp_c}°C
-                </Td>
-                <Td>
-                  <Bar
-                    color="#f7b267"
-                    width={day.day.avgtemp_c}
-                    gradient="linear-gradient(90deg, #ffe7b2, #f7b267)"
-                  />{" "}
-                  {day.day.avgtemp_c}°C
-                </Td>
-                <Td>
-                  <Bar
-                    color="#f76c6c"
-                    width={day.day.maxtemp_c}
-                    gradient="linear-gradient(90deg, #ffd6d6, #ff6b6b)"
-                  />{" "}
-                  {day.day.maxtemp_c}°C
-                </Td>
-                <Td>
-                  <Bar
-                    color="#5bc0de"
-                    width={day.day.maxwind_kph / 2}
-                    gradient="linear-gradient(90deg, #9ee6c5, #5bc0de)"
-                  />{" "}
-                  {day.day.maxwind_kph}
-                </Td>
-                <Td>
-                  <Bar
-                    color="#4a90e2"
-                    width={day.day.daily_chance_of_rain}
-                    gradient="linear-gradient(90deg, #a8d8ff, #4a90e2)"
-                  />{" "}
-                  {day.day.daily_chance_of_rain}%
-                </Td>
-              </tr>
-            ))
+            forecastDays.map((day: any, idx: number) => {
+              const cond = day.day.condition.text.toLowerCase();
+              let icon = <IconDaySunny size={22} style={{verticalAlign: 'middle', color: '#FFD600'}} />;
+              if (cond.includes("chuva") || cond.includes("rain")) icon = <IconRain size={22} style={{verticalAlign: 'middle', color: '#4a90e2'}} />;
+              else if (cond.includes("nublado") || cond.includes("cloud")) icon = <IconCloudy size={22} style={{verticalAlign: 'middle', color: '#90A4AE'}} />;
+              else if (cond.includes("noite") || cond.includes("night")) icon = <IconNightClear size={22} style={{verticalAlign: 'middle', color: '#283593'}} />;
+              else if (cond.includes("trovoada") || cond.includes("thunder")) icon = <IconThunderstorm size={22} style={{verticalAlign: 'middle', color: '#FFD600'}} />;
+              else if (cond.includes("neve") || cond.includes("snow")) icon = <IconSnow size={22} style={{verticalAlign: 'middle', color: '#B3E5FC'}} />;
+              else if (cond.includes("neblina") || cond.includes("fog")) icon = <IconFog size={22} style={{verticalAlign: 'middle', color: '#B0BEC5'}} />;
+
+              return (
+                <tr key={idx} className={idx % 2 === 0 ? "odd:bg-white/10 even:bg-white/5 hover:bg-white/20 transition" : "even:bg-white/10 odd:bg-white/5 hover:bg-white/20 transition"}>
+                  <Td>
+                    {new Date(day.date).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                    })}
+                  </Td>
+                  <Td>{icon} {day.day.condition.text}</Td>
+                  <Td>{day.day.mintemp_c}°C</Td>
+                  <Td>{day.day.avgtemp_c}°C</Td>
+                  <Td>{day.day.maxtemp_c}°C</Td>
+                  <Td style={{minWidth: 90}}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                      <IconStrongWind size={18} style={{opacity: 0.7, color: '#5bc0de'}} />
+                      <span style={{minWidth: 28}}>{day.day.maxwind_kph}</span>
+                    </div>
+                    <ProgressBarBg>
+                      <ProgressBar color="#5bc0de" width={Math.min(day.day.maxwind_kph, 100)} />
+                    </ProgressBarBg>
+                  </Td>
+                  <Td style={{minWidth: 90}}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                      <IconRain size={18} style={{opacity: 0.7, color: '#4a90e2'}} />
+                      <span style={{minWidth: 28}}>{day.day.daily_chance_of_rain}%</span>
+                    </div>
+                    <ProgressBarBg>
+                      <ProgressBar color="#4a90e2" width={day.day.daily_chance_of_rain} />
+                    </ProgressBarBg>
+                  </Td>
+                </tr>
+              );
+            })
           ) : (
             <tr>
               <Td colSpan={7} style={{ textAlign: "center", color: "#888" }}>

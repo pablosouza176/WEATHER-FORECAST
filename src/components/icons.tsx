@@ -1,4 +1,9 @@
 import React from "react";
+export const UvIcon = () => (
+  <span role="img" aria-label="índice uv">
+    ☀️
+  </span>
+);
 
 export const ThermometerIcon = () => (
   <span role="img" aria-label="termômetro">

@@ -1,8 +1,40 @@
-import React from "react";
+import { getTemperatureColor } from "../utils/temperatureColor";
+import L from "leaflet";
+import React, { useEffect } from "react";
 import styled from "styled-components";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet-velocity/dist/leaflet-velocity.css";
+import "leaflet-velocity";
+// Component to add animated wind layer
+const WindLayer: React.FC = () => {
+  const map = useMap();
+  useEffect(() => {
+    fetch("/wind-global.json")
+      .then((r) => r.json())
+      .then((data) => {
+  // @ts-ignore
+        const velocityLayer = L.velocityLayer({
+          displayValues: true,
+          displayOptions: {
+            velocityType: "Global Wind",
+            displayPosition: "bottomleft",
+            displayEmptyString: "No wind data",
+          },
+          data,
+          maxVelocity: 15,
+          velocityScale: 0.005,
+          colorScale: ["#00FFFF", "#FFFF00", "#FF0000"],
+        });
+        velocityLayer.addTo(map);
+        return () => {
+          map.removeLayer(velocityLayer);
+        };
+      });
+  }, [map]);
+  return null;
+};
 
 const MapWrapper = styled.div`
   background: rgba(255, 255, 255, 0.6);
@@ -10,8 +42,6 @@ const MapWrapper = styled.div`
   border-radius: 1.5rem;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   margin: 2.5rem auto 0 auto;
-  min-height: 240px;
-  width: 90%;
   overflow: hidden;
   transition: box-shadow 0.3s, transform 0.3s;
   will-change: box-shadow, transform;
@@ -29,10 +59,10 @@ type WeatherMapProps = {
 };
 
 const WeatherMap: React.FC<WeatherMapProps> = ({ forecast }) => {
-  // Centraliza no Brasil por padrão
+  // Centered on Brazil by default
   const center: LatLngExpression = [-15.78, -47.93];
-  // Se houver forecast, cria marcadores para cada dia/localidade
-  let markers: { pos: [number, number]; label: string }[] = [];
+  // If forecast exists, create markers for each day/location
+  let markers: { pos: [number, number]; label: string; color: string }[] = [];
   if (forecast?.location && forecast?.forecast?.forecastday) {
     const { lat, lon, name } = forecast.location;
     markers = forecast.forecast.forecastday.map((day: any) => ({
@@ -41,6 +71,7 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ forecast }) => {
         day: "2-digit",
         month: "2-digit",
       })}: ${day.day.avgtemp_c}°C, ${day.day.condition.text}`,
+      color: getTemperatureColor(day.day.avgtemp_c),
     }));
   }
 
@@ -49,18 +80,38 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ forecast }) => {
       <MapContainer
         center={center}
         zoom={4}
-        style={{ height: 240, width: "100%" }}
+        style={{ height: 720, width: "100%" }}
         scrollWheelZoom={false}
       >
+  {/* Satellite layer (Ventusky style, MapTiler) */}
         <TileLayer
-          attribution="Tiles © Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          attribution='&copy; <a href="https://www.maptiler.com/">MapTiler</a>'
+          url="https://api.maptiler.com/tiles/satellite/{z}/{x}/{y}.jpg?key=ns9IdHx66rEbdzfVFDSJ"
         />
-        {markers.map((m, i) => (
-          <Marker key={i} position={m.pos}>
-            <Popup>{m.label}</Popup>
-          </Marker>
-        ))}
+  {/* Precipitation layer from OpenWeatherMap */}
+        <TileLayer
+          url="https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=adf9e2b2fcdf97e077f910dce35e683b"
+          opacity={0.6}
+        />
+  {/* Wind layer from OpenWeatherMap */}
+        <TileLayer
+          url="https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=adf9e2b2fcdf97e077f910dce35e683b"
+          opacity={0.5}
+        />
+  {/* Animated wind vectors layer */}
+        <WindLayer />
+        {markers.map((m, i) => {
+          // Cria um ícone customizado colorido para cada temperatura
+          const icon = L.divIcon({
+            className: '',
+            html: `<div style="background:${m.color};width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.15);"></div>`
+          });
+          return (
+            <Marker key={i} position={m.pos} icon={icon}>
+              <Popup>{m.label}</Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
     </MapWrapper>
   );

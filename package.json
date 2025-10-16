@@ -12,9 +12,13 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@types/styled-components": "^5.1.34",
+    "chroma-js": "^3.1.2",
+    "framer-motion": "^12.23.24",
     "leaflet": "^1.9.4",
+    "leaflet-velocity": "^2.1.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-icons": "^5.5.0",
     "react-leaflet": "^5.0.0",
     "react-scripts": "5.0.1",
     "styled-components": "^6.1.19",
@@ -23,6 +27,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "dev": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -47,6 +52,7 @@
   },
   "devDependencies": {
     "@types/chart.js": "^4.0.1",
+    "@types/chroma-js": "^3.1.1",
     "@types/leaflet": "^1.9.21",
     "@types/react-chartjs-2": "^2.5.7",
     "autoprefixer": "^10.4.21",
