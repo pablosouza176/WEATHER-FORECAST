@@ -4,14 +4,14 @@ import { motion } from "framer-motion";
 import { colors } from "../styles/colors";
 
 const Card = styled.div<{ color: string }>`
-  background: rgba(255,255,255,0.18);
+  background: rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(12px);
   border-radius: 1.5rem;
-  box-shadow: 0 6px 24px rgba(37,99,235,0.13);
+  box-shadow: 0 6px 24px rgba(37, 99, 235, 0.13);
   border: 1.5px solid ${colors.cardBorder};
   padding: 2rem 1.2rem 1.2rem 1.2rem;
   min-width: 0;
-  width: 100%;
+  width: auto; /* Permite crescimento vertical conforme conteúdo */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -19,7 +19,7 @@ const Card = styled.div<{ color: string }>`
   transition: box-shadow 0.25s, transform 0.25s;
   will-change: box-shadow, transform;
   &:hover {
-    box-shadow: 0 12px 40px rgba(37,99,235,0.22);
+    box-shadow: 0 12px 40px rgba(37, 99, 235, 0.22);
     transform: scale(1.04);
   }
   @media (max-width: 700px) {
@@ -43,11 +43,15 @@ const Label = styled.div`
 `;
 
 const Value = styled.div`
-  color: ${(props) => props.color || '#1976D2'};
+  color: ${(props) => props.color || "#1976D2"};
   margin: 0.3rem 0 0.7rem 0;
   text-align: center;
-  font-size: 3.2rem;
+  font-size: clamp(1.2rem, 6vw, 3.2rem);
   font-weight: 800;
+  width: 100%;
+  word-break: break-word;
+  white-space: normal;
+  overflow-wrap: anywhere; /* Permite que o texto aumente o cartão */
 `;
 
 interface IndicatorCardProps {
@@ -59,7 +63,6 @@ interface IndicatorCardProps {
   sparklineData?: number[];
   children?: React.ReactNode;
 }
-
 
 export const IndicatorCard: React.FC<IndicatorCardProps> = ({
   icon,
@@ -79,8 +82,8 @@ export const IndicatorCard: React.FC<IndicatorCardProps> = ({
       <Card color={color}>
         <Icon>{icon}</Icon>
         <Value color={valueColor}>{value}</Value>
-  <Label>{label}</Label>
-  {children}
+        <Label>{label}</Label>
+        {children}
       </Card>
     </motion.div>
   </>

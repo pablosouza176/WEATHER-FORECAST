@@ -1,0 +1,49 @@
+.forecast-table-icon {
+  vertical-align: middle;
+}
+
+.icon-sunny {
+  color: #FFD600;
+}
+.icon-rain {
+  color: #4a90e2;
+}
+.icon-cloudy {
+  color: #90A4AE;
+}
+.icon-night {
+  color: #283593;
+}
+.icon-thunder {
+  color: #FFD600;
+}
+.icon-snow {
+  color: #B3E5FC;
+}
+.icon-fog {
+  color: #B0BEC5;
+}
+
+.td-min-width {
+  min-width: 90px;
+}
+.flex-center-gap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.icon-strong-wind {
+  opacity: 0.7;
+  color: #5bc0de;
+}
+.icon-rain-small {
+  opacity: 0.7;
+  color: #4a90e2;
+}
+.span-min-width {
+  min-width: 28px;
+}
+.td-center-gray {
+  text-align: center;
+  color: #888;
+}

@@ -1,4 +1,5 @@
 import React from "react";
+import styles from "../styles/IndicatorSparkline.module.css";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -21,7 +22,7 @@ const IndicatorSparkline: React.FC<IndicatorSparklineProps> = ({
   color,
 }) => {
   return (
-    <div style={{ width: "100%", height: 36 }}>
+    <div className={styles["indicator-sparkline-container"]}>
       <Line
         data={{
           labels: data.map((_, i) => i + 1),
