@@ -1,40 +1,8 @@
-import { getTemperatureColor } from "../utils/temperatureColor";
-import L from "leaflet";
-import React, { useEffect } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import styled from "styled-components";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import type { LatLngExpression } from "leaflet";
-import "leaflet/dist/leaflet.css";
-import "leaflet-velocity/dist/leaflet-velocity.css";
-import "leaflet-velocity";
-// Component to add animated wind layer
-const WindLayer: React.FC = () => {
-  const map = useMap();
-  useEffect(() => {
-    fetch("/wind-global.json")
-      .then((r) => r.json())
-      .then((data) => {
-  // @ts-ignore
-        const velocityLayer = L.velocityLayer({
-          displayValues: true,
-          displayOptions: {
-            velocityType: "Global Wind",
-            displayPosition: "bottomleft",
-            displayEmptyString: "No wind data",
-          },
-          data,
-          maxVelocity: 15,
-          velocityScale: 0.005,
-          colorScale: ["#00FFFF", "#FFFF00", "#FF0000"],
-        });
-        velocityLayer.addTo(map);
-        return () => {
-          map.removeLayer(velocityLayer);
-        };
-      });
-  }, [map]);
-  return null;
-};
+import Map, { Marker } from "react-map-gl/maplibre";
+import "maplibre-gl/dist/maplibre-gl.css";
+import { getTemperatureColor } from "../utils/temperatureColor";
 
 const MapWrapper = styled.div`
   background: rgba(255, 255, 255, 0.6);
@@ -56,63 +24,161 @@ const MapWrapper = styled.div`
 
 type WeatherMapProps = {
   forecast?: any;
+  mode?: "temperature" | "precipitation";
 };
 
-const WeatherMap: React.FC<WeatherMapProps> = ({ forecast }) => {
-  // Centered on Brazil by default
-  const center: LatLngExpression = [-15.78, -47.93];
-  // If forecast exists, create markers for each day/location
-  let markers: { pos: [number, number]; label: string; color: string }[] = [];
-  if (forecast?.location && forecast?.forecast?.forecastday) {
+
+
+
+const WeatherMap: React.FC<WeatherMapProps> = ({ forecast, mode = "temperature" }) => {
+  const center = useMemo(() => ({ latitude: -15.78, longitude: -47.93 }), []);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [viewState, setViewState] = useState({
+    latitude: center.latitude,
+    longitude: center.longitude,
+    zoom: 4
+  });
+
+  const tempPoints = useMemo(() => {
+    if (!forecast?.location || !forecast?.forecast?.forecastday) return [];
     const { lat, lon, name } = forecast.location;
-    markers = forecast.forecast.forecastday.map((day: any) => ({
-      pos: [lat, lon],
+    return forecast.forecast.forecastday.map((day: any) => ({
+      latitude: lat,
+      longitude: lon,
+      temp: day.day.avgtemp_c,
       label: `${name} ${new Date(day.date).toLocaleDateString("pt-BR", {
         day: "2-digit",
         month: "2-digit",
       })}: ${day.day.avgtemp_c}°C, ${day.day.condition.text}`,
       color: getTemperatureColor(day.day.avgtemp_c),
     }));
-  }
+  }, [forecast]);
+
+  const precipPoints = useMemo(() => {
+    if (!forecast?.location || !forecast?.forecast?.forecastday) return [];
+    const { lat, lon, name } = forecast.location;
+    return forecast.forecast.forecastday.map((day: any) => ({
+      latitude: lat,
+      longitude: lon,
+      precip: day.day.totalprecip_mm,
+      label: `${name} ${new Date(day.date).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+      })}: ${day.day.totalprecip_mm}mm, ${day.day.condition.text}`,
+    }));
+  }, [forecast]);
+
+  const handleLocate = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocalização não suportada pelo navegador.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setUserLocation({ latitude, longitude });
+        setViewState({ latitude, longitude, zoom: 16 });
+      },
+      (err) => {
+        alert("Não foi possível obter sua localização.");
+      },
+      { timeout: 10000 }
+    );
+  };
 
   return (
     <MapWrapper>
-      <MapContainer
-        center={center}
-        zoom={4}
-        style={{ height: 720, width: "100%" }}
-        scrollWheelZoom={false}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 18px 0 0' }}>
+        <button
+          onClick={handleLocate}
+          style={{
+            padding: '8px 16px',
+            borderRadius: 10,
+            background: '#5bc0de',
+            color: '#fff',
+            border: 'none',
+            fontWeight: 600,
+            fontSize: 15,
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(91,192,222,0.10)',
+            transition: 'background 0.2s',
+            minWidth: 120,
+          }}
+        >
+          Minha localização
+        </button>
+      </div>
+      <Map
+        {...viewState}
+        onMove={evt => setViewState(evt.viewState)}
+        style={{ width: "100%", height: 720 }}
+        mapStyle="https://api.maptiler.com/maps/satellite/style.json?key=ns9IdHx66rEbdzfVFDSJ"
       >
-  {/* Satellite layer (Ventusky style, MapTiler) */}
-        <TileLayer
-          attribution='&copy; <a href="https://www.maptiler.com/">MapTiler</a>'
-          url="https://api.maptiler.com/tiles/satellite/{z}/{x}/{y}.jpg?key=ns9IdHx66rEbdzfVFDSJ"
-        />
-  {/* Precipitation layer from OpenWeatherMap */}
-        <TileLayer
-          url="https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=adf9e2b2fcdf97e077f910dce35e683b"
-          opacity={0.6}
-        />
-  {/* Wind layer from OpenWeatherMap */}
-        <TileLayer
-          url="https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=adf9e2b2fcdf97e077f910dce35e683b"
-          opacity={0.5}
-        />
-  {/* Animated wind vectors layer */}
-        <WindLayer />
-        {markers.map((m, i) => {
-          // Cria um ícone customizado colorido para cada temperatura
-          const icon = L.divIcon({
-            className: '',
-            html: `<div style="background:${m.color};width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.15);"></div>`
-          });
-          return (
-            <Marker key={i} position={m.pos} icon={icon}>
-              <Popup>{m.label}</Popup>
-            </Marker>
-          );
-        })}
-      </MapContainer>
+        {userLocation && (
+          <Marker longitude={userLocation.longitude} latitude={userLocation.latitude} anchor="bottom">
+            <div style={{
+              background: '#5bc0de',
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              border: '3px solid #fff',
+              boxShadow: '0 2px 12px rgba(91,192,222,0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 700,
+              color: '#fff',
+              fontSize: 15,
+              cursor: 'pointer',
+              zIndex: 999
+            }} title="Você está aqui">
+              <span role="img" aria-label="localização">📍</span>
+            </div>
+          </Marker>
+        )}
+        {mode === "temperature" && tempPoints.map((p: any, i: number) => (
+          <Marker key={i} longitude={p.longitude} latitude={p.latitude} anchor="bottom">
+            <div style={{
+              background: p.color,
+              width: 22,
+              height: 22,
+              borderRadius: "50%",
+              border: "2px solid #fff",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 700,
+              color: "#222",
+              fontSize: 13,
+              cursor: "pointer"
+            }} title={p.label}>
+              {Math.round(p.temp)}°C
+            </div>
+          </Marker>
+        ))}
+        {mode === "precipitation" && precipPoints.map((p: any, i: number) => (
+          <Marker key={i} longitude={p.longitude} latitude={p.latitude} anchor="bottom">
+            <div style={{
+              background: "#4a90e2",
+              width: 22,
+              height: 22,
+              borderRadius: "50%",
+              border: "2px solid #fff",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 700,
+              color: "#fff",
+              fontSize: 13,
+              cursor: "pointer"
+            }} title={p.label}>
+              {Math.round(p.precip)}mm
+            </div>
+          </Marker>
+        ))}
+      </Map>
     </MapWrapper>
   );
 };

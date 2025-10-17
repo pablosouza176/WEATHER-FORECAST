@@ -1,4 +1,3 @@
-// Hook to decide the background video according to weather condition, using getPath
 export const useBackgroundVideo = (condition: string, isDay: boolean): string => {
   const normalized = (condition || "").toLowerCase();
 
@@ -14,7 +13,6 @@ export const useBackgroundVideo = (condition: string, isDay: boolean): string =>
     return base.replace(/\/$/, "") + "/videos/" + file;
   };
 
-  // Priority: storm > rain > cloudy > night/day
   if (normalized.includes("tempestade")) return getPath(isDay ? "storm-day.mp4" : "storm-night.mp4");
   if (normalized.includes("chuva")) return getPath(isDay ? "rain-day.mp4" : "rain-night.mp4");
   if (normalized.includes("nublado") || normalized.includes("cloud")) return getPath(isDay ? "cloudy.mp4" : "cloudy-night.mp4");

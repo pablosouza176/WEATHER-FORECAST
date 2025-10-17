@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import Header from "./components/Header";
-import IndicatorCard from "./components/IndicatorCard";
+import { IndicatorCard } from "./components/IndicatorCard";
 import ForecastTable from "./components/ForecastTable";
 import WeatherMap from "./components/WeatherMap";
 import { ThermometerIcon, WindIcon, RainIcon, UvIcon } from "./components/icons";
@@ -13,7 +12,7 @@ import {
 } from "./services/weatherApiWeatherAPI";
 import styled from "styled-components";
 import { Container } from "./styles/Container";
-import { useBackgroundVideo } from "./hooks/useBackgroundVideo";
+// ...existing code...
 
 const Main = styled.main`
   max-width: 1500px;
@@ -47,6 +46,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [city, setCity] = useState("");
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [mapMode, setMapMode] = useState<'temperature' | 'precipitation'>('temperature');
 
   // Updates the digital clock every second
   useEffect(() => {
@@ -174,9 +174,15 @@ const App: React.FC = () => {
   };
 
   // Determines the weather condition for the background
-  const condition = weather?.current?.condition?.text || "";
-  const isDay = weather?.current?.is_day === 1;
-  const backgroundVideo = useBackgroundVideo(condition, isDay);
+  // Função para escolher imagem de fundo conforme condição
+  const getBackgroundImage = () => {
+    const condition = weather?.current?.condition?.text?.toLowerCase() || "";
+    const isDay = weather?.current?.is_day === 1;
+    if (condition.includes("tempestade")) return "/Images/storm.png";
+    if (condition.includes("chuva")) return "/Images/rain.png";
+    if (condition.includes("nublado") || condition.includes("cloud")) return isDay ? "/Images/day.png" : "/Images/nigth.png";
+    return isDay ? "/Images/day.png" : "/Images/nigth.png";
+  };
 
   return (
     <div
@@ -186,25 +192,14 @@ const App: React.FC = () => {
         width: "100vw",
         position: "relative",
         overflow: "hidden",
+        backgroundImage: `url(${getBackgroundImage()})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     >
-  {/* Removed global background video to not overlay the dashboard */}
       <div className="absolute inset-0 bg-white/30 backdrop-blur-sm" style={{zIndex: 1}}></div>
       <Container style={{position: "relative", zIndex: 10, width: "100%"}}>
-        <Header />
-  {/* Background video behind cards, table and map */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ zIndex: 1, position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', objectFit: 'cover', background: '#b3d8ff', pointerEvents: 'none' }}
-          onError={e => (e.currentTarget.style.display = 'none')}
-        >
-          <source src={backgroundVideo} type="video/mp4" />
-        </video>
-  {/* Overlay for readability */}
+  {/* Header removido */}
         <div style={{position: 'relative', zIndex: 10}}>
           <Main>
             <div
@@ -407,7 +402,45 @@ const App: React.FC = () => {
             </div>
           )}
           <div style={{ width: "auto", height: "auto" }}>
-            <WeatherMap forecast={forecast} />
+            <div style={{ display: 'flex', gap: 12, marginBottom: 18, justifyContent: 'center' }}>
+              <button
+                onClick={() => setMapMode('temperature')}
+                style={{
+                  padding: '8px 18px',
+                  borderRadius: 10,
+                  background: mapMode === 'temperature' ? '#ff6b6b' : '#eee',
+                  color: mapMode === 'temperature' ? '#fff' : '#333',
+                  border: 'none',
+                  fontWeight: 600,
+                  fontSize: 15,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(79,142,247,0.07)',
+                  transition: 'background 0.2s',
+                  minWidth: 120,
+                }}
+              >
+                Mapa de Calor (Temperatura)
+              </button>
+              <button
+                onClick={() => setMapMode('precipitation')}
+                style={{
+                  padding: '8px 18px',
+                  borderRadius: 10,
+                  background: mapMode === 'precipitation' ? '#4a90e2' : '#eee',
+                  color: mapMode === 'precipitation' ? '#fff' : '#333',
+                  border: 'none',
+                  fontWeight: 600,
+                  fontSize: 15,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(79,142,247,0.07)',
+                  transition: 'background 0.2s',
+                  minWidth: 120,
+                }}
+              >
+                Mapa de Precipitação
+              </button>
+            </div>
+            <WeatherMap forecast={forecast} mode={mapMode} />
           </div>
         </Main>
         </div>

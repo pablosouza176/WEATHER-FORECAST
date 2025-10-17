@@ -7,18 +7,8 @@ const HeaderContainer = styled.header`
   background: linear-gradient(90deg, #4f8ef7 0%, #a1c4fd 100%);
 `;
 
-const Title = styled.h1`
-  font-size: 2.8rem;
-  font-weight: 600;
-  color: #fff;
-  margin: 0;
-  letter-spacing: 0.5px;
-`;
-
 const Header: React.FC = () => (
-  <HeaderContainer>
-    <Title>Dashboard – Previsão do tempo</Title>
-  </HeaderContainer>
+  <HeaderContainer></HeaderContainer>
 );
 
 export default Header;

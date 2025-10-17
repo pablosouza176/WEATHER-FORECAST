@@ -2,7 +2,6 @@ import React from "react";
 import styled from "styled-components";
 import { WiRain, WiStrongWind, WiDaySunny, WiCloudy, WiNightClear, WiThunderstorm, WiSnow, WiFog } from "react-icons/wi";
 
-// Garantir compatibilidade dos ícones com JSX/TSX
 const IconDaySunny = WiDaySunny as unknown as React.FC<{ size?: number; style?: React.CSSProperties }>;
 const IconRain = WiRain as unknown as React.FC<{ size?: number; style?: React.CSSProperties }>;
 const IconCloudy = WiCloudy as unknown as React.FC<{ size?: number; style?: React.CSSProperties }>;
@@ -65,13 +64,11 @@ const ProgressBar = styled.div<{ color: string; width: number }>`
   transition: width 0.7s cubic-bezier(0.22, 0.9, 0.33, 1);
 `;
 
-// Tipagem para os dados de forecast
 type ForecastTableProps = {
   forecast?: any;
 };
 
 const ForecastTable: React.FC<ForecastTableProps> = ({ forecast }) => {
-  // forecast.forecast.forecastday[]
   const forecastDays = forecast?.forecast?.forecastday || [];
   return (
     <TableWrapper>
