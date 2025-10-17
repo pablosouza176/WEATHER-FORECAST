@@ -1,0 +1,10 @@
+.weather-map-container {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 18px 0 0;
+}
+
+.weather-map {
+  width: 100%;
+  height: 720px;
+}

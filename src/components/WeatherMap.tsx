@@ -1,7 +1,8 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import styled from "styled-components";
 import Map, { Marker } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
+import styles from "../styles/WeatherMap.module.css";
 import { getTemperatureColor } from "../utils/temperatureColor";
 
 const MapWrapper = styled.div`
@@ -27,16 +28,19 @@ type WeatherMapProps = {
   mode?: "temperature" | "precipitation";
 };
 
-
-
-
-const WeatherMap: React.FC<WeatherMapProps> = ({ forecast, mode = "temperature" }) => {
+const WeatherMap: React.FC<WeatherMapProps> = ({
+  forecast,
+  mode = "temperature",
+}) => {
   const center = useMemo(() => ({ latitude: -15.78, longitude: -47.93 }), []);
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const [viewState, setViewState] = useState({
     latitude: center.latitude,
     longitude: center.longitude,
-    zoom: 4
+    zoom: 4,
   });
 
   const tempPoints = useMemo(() => {
@@ -88,20 +92,20 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ forecast, mode = "temperature" 
 
   return (
     <MapWrapper>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 18px 0 0' }}>
+      <div className={styles["weather-map-container"]}>
         <button
           onClick={handleLocate}
           style={{
-            padding: '8px 16px',
+            padding: "8px 16px",
             borderRadius: 10,
-            background: '#5bc0de',
-            color: '#fff',
-            border: 'none',
+            background: "#5bc0de",
+            color: "#fff",
+            border: "none",
             fontWeight: 600,
             fontSize: 15,
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(91,192,222,0.10)',
-            transition: 'background 0.2s',
+            cursor: "pointer",
+            boxShadow: "0 2px 8px rgba(91,192,222,0.10)",
+            transition: "background 0.2s",
             minWidth: 120,
           }}
         >
@@ -110,74 +114,59 @@ const WeatherMap: React.FC<WeatherMapProps> = ({ forecast, mode = "temperature" 
       </div>
       <Map
         {...viewState}
-        onMove={evt => setViewState(evt.viewState)}
-        style={{ width: "100%", height: 720 }}
+        onMove={(evt) => setViewState(evt.viewState)}
+        style={{ width: "100%", height: "500px" }}
         mapStyle="https://api.maptiler.com/maps/satellite/style.json?key=ns9IdHx66rEbdzfVFDSJ"
       >
         {userLocation && (
-          <Marker longitude={userLocation.longitude} latitude={userLocation.latitude} anchor="bottom">
-            <div style={{
-              background: '#5bc0de',
-              width: 28,
-              height: 28,
-              borderRadius: '50%',
-              border: '3px solid #fff',
-              boxShadow: '0 2px 12px rgba(91,192,222,0.25)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              color: '#fff',
-              fontSize: 15,
-              cursor: 'pointer',
-              zIndex: 999
-            }} title="Você está aqui">
-              <span role="img" aria-label="localização">📍</span>
+          <Marker
+            longitude={userLocation.longitude}
+            latitude={userLocation.latitude}
+            anchor="bottom"
+          >
+            <div
+              className={styles["weather-map-user-location"]}
+              title="Você está aqui"
+            >
+              <span role="img" aria-label="localização">
+                📍
+              </span>
             </div>
           </Marker>
         )}
-        {mode === "temperature" && tempPoints.map((p: any, i: number) => (
-          <Marker key={i} longitude={p.longitude} latitude={p.latitude} anchor="bottom">
-            <div style={{
-              background: p.color,
-              width: 22,
-              height: 22,
-              borderRadius: "50%",
-              border: "2px solid #fff",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 700,
-              color: "#222",
-              fontSize: 13,
-              cursor: "pointer"
-            }} title={p.label}>
-              {Math.round(p.temp)}°C
-            </div>
-          </Marker>
-        ))}
-        {mode === "precipitation" && precipPoints.map((p: any, i: number) => (
-          <Marker key={i} longitude={p.longitude} latitude={p.latitude} anchor="bottom">
-            <div style={{
-              background: "#4a90e2",
-              width: 22,
-              height: 22,
-              borderRadius: "50%",
-              border: "2px solid #fff",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 700,
-              color: "#fff",
-              fontSize: 13,
-              cursor: "pointer"
-            }} title={p.label}>
-              {Math.round(p.precip)}mm
-            </div>
-          </Marker>
-        ))}
+        {mode === "temperature" &&
+          tempPoints.map((p: any, i: number) => (
+            <Marker
+              key={i}
+              longitude={p.longitude}
+              latitude={p.latitude}
+              anchor="bottom"
+            >
+              <div
+                className={styles["weather-map-temp-point"]}
+                style={{ background: p.color }}
+                title={p.label}
+              >
+                {Math.round(p.temp)}°C
+              </div>
+            </Marker>
+          ))}
+        {mode === "precipitation" &&
+          precipPoints.map((p: any, i: number) => (
+            <Marker
+              key={i}
+              longitude={p.longitude}
+              latitude={p.latitude}
+              anchor="bottom"
+            >
+              <div
+                className={styles["weather-map-precip-point"]}
+                title={p.label}
+              >
+                {Math.round(p.precip)}mm
+              </div>
+            </Marker>
+          ))}
       </Map>
     </MapWrapper>
   );
